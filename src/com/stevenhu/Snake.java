@@ -6,7 +6,7 @@ package com.stevenhu;
 public class Snake {
 	public int x;
 	public int y;
-	public enum Direction {UP, DOWN, RIGHT, LEFT}
+	
 	
 	public Snake(int x, int y){
 		this.x = x;

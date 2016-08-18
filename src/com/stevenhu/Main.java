@@ -6,7 +6,8 @@ public class Main {
 		GameLogic game = new GameLogic();
 		game.createGame();
 		
-		game.gamePlay();
-		
+		while (true) {
+			game.gamePlay();
+		}
 	}
 }
