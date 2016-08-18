@@ -6,8 +6,10 @@ public class Main {
 		GameLogic game = new GameLogic();
 		game.createGame();
 		
-		while (true) {
+		while (!game.isGameOver()) {
 			game.gamePlay();
 		}
+		
+		System.out.println("GAME OVER");
 	}
 }
