@@ -48,6 +48,7 @@ public class GameLogic {
 
 //		Draw player
 		if (snake.size() > 1) {
+			
 			terminal.moveCursor(snake.get(0).x, snake.get(0).y);
 			terminal.applyBackgroundColor(Terminal.Color.GREEN);
 			terminal.putCharacter(' ');
@@ -86,18 +87,14 @@ public class GameLogic {
 				updateDot();
 			}
 			updateSnake();
-			for (int i = snake.size()-2; i >=0; i--) {
-				snake.get(i).x = snake.get(i+1).x ;
-				snake.get(i).y = snake.get(i+1).y;
-			}
 			Thread.sleep(250);
 			key = terminal.readInput();
-			System.out.println(snakeDirection);
-			
 		}
 		while (key == null);
 		
-		changeDirection(key);
+		if (key !=null) {
+			changeDirection(key);
+		}
 	}
 	
 	private void newDot() {
@@ -106,14 +103,18 @@ public class GameLogic {
 			dot = new Dot(rand.nextInt(terminal.getTerminalSize().getColumns() - 2) + 1, rand.nextInt(terminal.getTerminalSize().getRows() - 2) + 1);
 		}
 		
+		
 	}
 	
 	private boolean dotNotValid() {
-		for (Snake part :
-				snake) {
+		for (Snake part : snake) {
 			if (dot.x == part.x && dot.y == part.y) {
 				return true;
 			}
+		}
+		if (dot.x == 0 || dot.x ==terminal.getTerminalSize().getColumns()-1
+				|| dot.y == 0 || dot.y == terminal.getTerminalSize().getRows()-1){
+			return true;
 		}
 		return false;
 	}
@@ -157,13 +158,13 @@ public class GameLogic {
 			case "d NormalKey":
 				snakeDirection -= 1;
 				snakeDirection %= 4;
-				snakeDirection = Math.abs(snakeDirection);
+				
 				break;
 			case "L ArrowLeft":
 			case "a NormalKey":
 				snakeDirection += 1;
 				snakeDirection %= 4;
-				snakeDirection = Math.abs(snakeDirection);
+				
 				break;
 		}
 	}
@@ -175,12 +176,15 @@ public class GameLogic {
 				snake.add(new Snake(snake.get(snake.size() - 1).x, snake.get(snake.size() - 1).y + 1)); //DOWN
 				break;
 			case 1:
+			case -3:
 				snake.add(new Snake(snake.get(snake.size() - 1).x + 1, snake.get(snake.size() - 1).y)); //RIGHT
 				break;
 			case 2:
+			case -2:
 				snake.add(new Snake(snake.get(snake.size() - 1).x, snake.get(snake.size() - 1).y - 1)); //UP
 				break;
 			case 3:
+			case -1:
 				snake.add(new Snake(snake.get(snake.size() - 1).x - 1, snake.get(snake.size() - 1).y)); //LEFT
 				break;
 		}
@@ -209,7 +213,7 @@ public class GameLogic {
 	
 	private boolean ateDot() {
 		if (snake.get(snake.size() - 1).x == dot.x && snake.get(snake.size() - 1).y == dot.y) {
-			snake.add(0, new Snake(snake.get(snake.size() - 1).x, snake.get(snake.size() - 1).y));
+			snake.add(0, new Snake(snake.get(0).x, snake.get(0).y));
 			
 			score++;
 			return true;
