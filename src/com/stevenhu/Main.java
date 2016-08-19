@@ -13,8 +13,7 @@ public class Main {
 				game.gamePlay();
 			}
 			
-			System.out.println("GAME OVER");
-			Thread.sleep(1000);
+			Thread.sleep(5000);
 		}
 	}
 }
