@@ -14,7 +14,7 @@ public class Main {
 			}
 			
 			System.out.println("GAME OVER");
-			Thread.sleep(5000);
+			Thread.sleep(1000);
 		}
 	}
 }

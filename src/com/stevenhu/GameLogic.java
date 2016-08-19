@@ -15,61 +15,34 @@ import java.util.Random;
  */
 public class GameLogic {
 	private Terminal terminal;
-	private List<Snake> snake = new ArrayList<>();
+	private List<Snake> snake;
 	private Dot dot;
 	private Random rand = new Random();
 	private int score;
-	private int snakeDirection = 1;
+	private int snakeDirection;
+	
 	
 	public GameLogic() {
 		terminal = TerminalFacade.createTerminal(System.in, System.out, Charset.forName("UTF8"));
 		terminal.enterPrivateMode();
 		terminal.setCursorVisible(false);
 		
-		applyBackgroundColor(Terminal.Color.GREEN);
+		
 	}
 	
 	public void createGame() {
+//		Draw field
+		applyBackgroundColor(Terminal.Color.GREEN);
 		drawBoarder(Terminal.Color.RED);
 		
+//	    Initialize snake
+		snake = new ArrayList<>();
 		snake.add(new Snake(49, 14));
-		dot = new Dot(rand.nextInt(terminal.getTerminalSize().getColumns()), rand.nextInt(terminal.getTerminalSize().getRows()));
-		updateDot();
-	}
-	
-	private void updateDot() {
-		terminal.moveCursor(dot.x, dot.y);
-		terminal.applyBackgroundColor(Terminal.Color.GREEN);
-		terminal.applyForegroundColor(Terminal.Color.BLACK);
-		terminal.putCharacter('\u25cf');
-	}
-	
-	private void updateSnake() {
-
-//		Draw player
-		if (snake.size() > 1) {
-			
-			terminal.moveCursor(snake.get(0).x, snake.get(0).y);
-			terminal.applyBackgroundColor(Terminal.Color.GREEN);
-			terminal.putCharacter(' ');
-			snake.remove(0);
-		}
-				
-		for (int i = 0; i < snake.size(); i++) {
-			terminal.moveCursor(snake.get(i).x, snake.get(i).y);
-			terminal.applyForegroundColor(102, 51, 0);
-			terminal.putCharacter('\u2588');
-		}
-
-//		Draw info
-		terminal.moveCursor(0, 0);
-		String s = "Score: " + score;
-		for (int i = 0; i < s.length(); i++) {
-			terminal.applyBackgroundColor(Terminal.Color.RED);
-			terminal.applyForegroundColor(Terminal.Color.WHITE);
-			terminal.putCharacter(s.charAt(i));
-		}
-		
+		snakeDirection = 1;
+//		Create dot
+		dot = spawnNewDot();
+		drawDot();
+		score = 0;
 	}
 	
 	public void gamePlay() throws InterruptedException {
@@ -80,14 +53,15 @@ public class GameLogic {
 			
 			moveSnake();
 			if (isGameOver()) {
+				printGameover();
 				break;
 			}
 			if (ateDot()) {
-				newDot();
-				updateDot();
+				dot = spawnNewDot();
+				drawDot();
 			}
 			updateSnake();
-			Thread.sleep(250);
+			Thread.sleep(100); //Determine the speed of the game
 			key = terminal.readInput();
 		}
 		while (key == null);
@@ -96,30 +70,7 @@ public class GameLogic {
 			changeDirection(key);
 		}
 	}
-	
-	private void newDot() {
-		dot = new Dot(rand.nextInt(terminal.getTerminalSize().getColumns() - 2) + 1, rand.nextInt(terminal.getTerminalSize().getRows() - 2) + 1);
-		while (dotNotValid()) {
-			dot = new Dot(rand.nextInt(terminal.getTerminalSize().getColumns() - 2) + 1, rand.nextInt(terminal.getTerminalSize().getRows() - 2) + 1);
-		}
 		
-		
-	}
-	
-	private boolean dotNotValid() {
-		for (Snake part : snake) {
-			if (dot.x == part.x && dot.y == part.y) {
-				return true;
-			}
-		}
-		if (dot.x == 0 || dot.x ==terminal.getTerminalSize().getColumns()-1
-				|| dot.y == 0 || dot.y == terminal.getTerminalSize().getRows()-1){
-			return true;
-		}
-		return false;
-	}
-	
-	
 	private void applyBackgroundColor(Terminal.Color color) {
 		for (int i = 0; i < terminal.getTerminalSize().getColumns(); i++) {
 			for (int j = 0; j < terminal.getTerminalSize().getRows(); j++) {
@@ -151,6 +102,45 @@ public class GameLogic {
 		}
 	}
 	
+	private void drawDot() {
+		terminal.moveCursor(dot.x, dot.y);
+		terminal.applyBackgroundColor(Terminal.Color.GREEN);
+		terminal.applyForegroundColor(Terminal.Color.BLACK);
+		terminal.putCharacter('\u25cf');
+	}
+	
+	private Dot spawnNewDot() {
+		dot = new Dot(rand.nextInt(terminal.getTerminalSize().getColumns() - 2) + 1, rand.nextInt(terminal.getTerminalSize().getRows() - 2) + 1);
+		while (dotNotValid()) {
+			dot = new Dot(rand.nextInt(terminal.getTerminalSize().getColumns() - 2) + 1, rand.nextInt(terminal.getTerminalSize().getRows() - 2) + 1);
+		}
+		return dot;
+		
+	}
+	
+	private boolean dotNotValid() {
+		for (Snake part : snake) {
+			if (dot.x == part.x && dot.y == part.y) {
+				return true;
+			}
+		}
+		if (dot.x == 0 || dot.x ==terminal.getTerminalSize().getColumns()-1 ||
+				dot.y == 0 || dot.y == terminal.getTerminalSize().getRows()-1){
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean ateDot() {
+		if (snake.get(snake.size() - 1).x == dot.x && snake.get(snake.size() - 1).y == dot.y) {
+			snake.add(0, new Snake(snake.get(0).x, snake.get(0).y));
+			
+			score++;
+			return true;
+		}
+		return false;
+	}
+		
 	private void changeDirection(Key key) {
 		
 		switch (key.getCharacter() + " " + key.getKind()) {
@@ -168,7 +158,6 @@ public class GameLogic {
 				break;
 		}
 	}
-	
 	
 	private void moveSnake() {
 		switch (snakeDirection) {
@@ -194,6 +183,34 @@ public class GameLogic {
 		
 	}
 	
+	private void updateSnake() {
+
+//		Draw player
+		if (snake.size() > 1) {
+			
+			terminal.moveCursor(snake.get(0).x, snake.get(0).y);
+			terminal.applyBackgroundColor(Terminal.Color.GREEN);
+			terminal.putCharacter(' ');
+			snake.remove(0);
+		}
+		
+		for (int i = 0; i < snake.size(); i++) {
+			terminal.moveCursor(snake.get(i).x, snake.get(i).y);
+			terminal.applyForegroundColor(102, 51, 0);
+			terminal.putCharacter('\u2588');
+		}
+
+//		Draw info
+		terminal.moveCursor(0, 0);
+		String s = "Score: " + score;
+		for (int i = 0; i < s.length(); i++) {
+			terminal.applyBackgroundColor(Terminal.Color.RED);
+			terminal.applyForegroundColor(Terminal.Color.WHITE);
+			terminal.putCharacter(s.charAt(i));
+		}
+		
+	}
+	
 	public boolean isGameOver() {
 		for (int i = 1; i < snake.size() - 1; i++) {
 			if (snake.get(snake.size() - 1).x == snake.get(i).x && snake.get(snake.size() - 1).y == snake.get(i).y) {
@@ -211,14 +228,14 @@ public class GameLogic {
 		return false;
 	}
 	
-	private boolean ateDot() {
-		if (snake.get(snake.size() - 1).x == dot.x && snake.get(snake.size() - 1).y == dot.y) {
-			snake.add(0, new Snake(snake.get(0).x, snake.get(0).y));
-			
-			score++;
-			return true;
+	private void printGameover(){
+		terminal.moveCursor(46, 14);
+		String s = "GAME OVER";
+		for (int i = 0; i < s.length(); i++) {
+			terminal.applyBackgroundColor(Terminal.Color.RED);
+			terminal.applyForegroundColor(Terminal.Color.WHITE);
+			terminal.putCharacter(s.charAt(i));
 		}
-		return false;
 	}
 	
 }
