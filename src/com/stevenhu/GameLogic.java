@@ -61,7 +61,7 @@ public class GameLogic {
 				drawDot();
 			}
 			updateSnake();
-			Thread.sleep(100); //Determine the speed of the game
+			Thread.sleep(1000); //Determine the speed of the game
 			key = terminal.readInput();
 		}
 		while (key == null);
